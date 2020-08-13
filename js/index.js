@@ -14,11 +14,34 @@ class Car {
         context.drawImage(this.image, this.x, this.y, this.width, this.height);
     }
     moveRight() {
-        this.x += 5
+        if (this.x > 440) this.x = 440
+        this.x += 10
     }
     moveLeft() {
-        this.x -= 5
+        if (this.x < 20) this.x = 20
+        this.x -= 10
     }
+    isTouching(obstacle) {
+        return this.x < obstacle.x + obstacle.width &&
+            this.x + this.width > obstacle.x &&
+            this.y < obstacle.y + obstacle.height &&
+            this.y + this.height > obstacle.y
+    }
+}
+
+class Obstacle extends Car {
+    constructor(x, width) {
+        super(x, -30)
+        this.width = width
+        this.height = 30
+        this.color = 'red'
+    }
+    draw() {
+        context.fillStyle = this.color
+        context.fillRect(this.x, this.y, this.width, this.height)
+        this.y++
+    }
+
 }
 
 const car = new Car(
@@ -26,7 +49,9 @@ const car = new Car(
     canvas.height - 100,
     "../images/car.png"
 );
-let intervalId;
+const obstacles = []
+let intervalId,
+    frames = 0
 
 document.addEventListener('keydown', (e) => {
     if (e.keyCode === 39) car.moveRight()
@@ -44,9 +69,11 @@ window.onload = () => {
 };
 
 function updateCanvas() {
+    frames++
     clearCanvas()
+    createObstacle()
+    checkCollision()
     drawBoard()
-
 }
 
 function clearCanvas() {
@@ -70,4 +97,30 @@ function drawBoard() {
         context.fillRect($canvas.width / 2 - 3, i * 35, 6, 20);
     }
     car.draw()
+    obstacles.forEach((obstacle, index) => {
+        if (obstacle.y > 700) {
+            obstacles.slice(index, 1)
+        } else obstacle.draw()
+    })
+}
+
+function createObstacle() {
+    if (frames % 220 === 0) {
+        const minWidth = 50
+        const maxWidth = 360
+        const randomWidth = Math.floor(Math.random() * (maxWidth - minWidth) + minWidth)
+        const minX = 20
+        const maxX = 480 - randomWidth
+        const randomX = Math.floor(Math.random() * (maxX - minX) + minX)
+        obstacles.push(new Obstacle(randomX, randomWidth))
+    }
+}
+
+function checkCollision() {
+    obstacles.forEach(obstacle => {
+        if (car.isTouching(obstacle)) {
+            clearInterval(intervalId)
+                // gameOver()
+        }
+    })
 }
