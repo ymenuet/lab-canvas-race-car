@@ -39,7 +39,7 @@ class Obstacle extends Car {
     draw() {
         context.fillStyle = this.color
         context.fillRect(this.x, this.y, this.width, this.height)
-        this.y++
+        this.y += 3
     }
 
 }
@@ -49,9 +49,10 @@ const car = new Car(
     canvas.height - 100,
     "../images/car.png"
 );
-const obstacles = []
+let obstacles = []
 let intervalId,
-    frames = 0
+    frames,
+    score;
 
 document.addEventListener('keydown', (e) => {
     if (e.keyCode === 39) car.moveRight()
@@ -64,16 +65,22 @@ window.onload = () => {
     };
 
     function startGame() {
+        clearInterval(intervalId)
+        frames = 0
+        score = 0
+        obstacles = []
         intervalId = setInterval(updateCanvas, 1000 / 60)
     }
 };
 
+
 function updateCanvas() {
     frames++
+    score = Math.floor(frames / 120) - 2 < 0 ? 0 : Math.floor(frames / 120) - 2
     clearCanvas()
     createObstacle()
-    checkCollision()
     drawBoard()
+    checkCollision()
 }
 
 function clearCanvas() {
@@ -102,10 +109,11 @@ function drawBoard() {
             obstacles.slice(index, 1)
         } else obstacle.draw()
     })
+    printScore()
 }
 
 function createObstacle() {
-    if (frames % 220 === 0) {
+    if (frames % 120 === 0) {
         const minWidth = 50
         const maxWidth = 360
         const randomWidth = Math.floor(Math.random() * (maxWidth - minWidth) + minWidth)
@@ -119,8 +127,25 @@ function createObstacle() {
 function checkCollision() {
     obstacles.forEach(obstacle => {
         if (car.isTouching(obstacle)) {
+            gameOver()
             clearInterval(intervalId)
-                // gameOver()
         }
     })
+}
+
+function printScore() {
+    context.font = '40px Sans-serif'
+    context.fillStyle = 'black'
+    context.fillText(`Score: ${score}`, 170, 40)
+}
+
+function gameOver() {
+    context.fillStyle = 'black'
+    context.fillRect(50, 150, 400, 400)
+    context.font = '50px Sans-serif'
+    context.fillStyle = 'red'
+    context.fillText('Game Over', 60, 200)
+    context.fillStyle = 'white'
+    context.font = '40px Sans-serif'
+    context.fillText(`Your score is: ${score}`, 50, 300, 350)
 }
